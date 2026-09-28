@@ -24,16 +24,8 @@ Previously:
 | `output/` | Pipeline and FRASER outputs |
 | `symlinked_bams/`, `symlinked_fastqs/` | Sample symlinks |
 | `metadata/` | Sample metadata |
-| `French_approach/` | [intronaute](https://github.com/JMdeSteAgathe/intronaute) (git submodule) |
+| `French_approach/` | Vendored copy of [intronaute](https://github.com/JMdeSteAgathe/intronaute) (local edits tracked in this repo only) |
 
 ## GitHub
 
 This tree is linked to the private repo [maurermaggie/RNU12_analysis](https://github.com/maurermaggie/RNU12_analysis). Large data (BAMs, FASTQs, FRASER count matrices, most logs) are excluded via `.gitignore` and remain on Oak only.
-
-After cloning this repo, initialize submodules:
-
-```bash
-git clone --recurse-submodules git@github.com:maurermaggie/RNU12_analysis.git
-# or, if already cloned:
-git submodule update --init --recursive
-```
