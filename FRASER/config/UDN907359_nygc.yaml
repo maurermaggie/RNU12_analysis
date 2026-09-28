@@ -1,0 +1,4 @@
+output_directory: "/oak/stanford/groups/smontgom/shared/UDN/Analysis/RNU12_analysis/output/FRASER/UDN907359_nygc"
+input_directory: "/oak/stanford/groups/smontgom/shared/UDN/Analysis/RNU12_analysis/output/star_output_trimmed_hg38_v47"
+file_list: "/oak/stanford/groups/smontgom/shared/UDN/Analysis/RNU12_analysis/FRASER/config/UDN907359_nygc.csv"
+FRASER_type: "Both"

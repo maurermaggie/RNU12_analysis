@@ -1,0 +1,3 @@
+output_directory: "/oak/stanford/groups/smontgom/shared/UDN/Analysis/RNU12_analysis/converted_fastq_from_cram"
+ref: "/oak/stanford/groups/smontgom/shared/UDN/Analysis/RNU12_analysis/reference/Homo_sapiens_assembly38_noALT_noHLA_noDecoy.fasta"
+cram_directory: "/oak/stanford/groups/smontgom/shared/UDN/Analysis/RNU12_analysis/converted_fastq_from_cram/copied_cram_UR_reheadered"

@@ -1,0 +1,35 @@
+# Large data and generated outputs (kept on Oak)
+output/
+logs/
+FRASER/logs/
+converted_fastq_from_cram/
+symlinked_bams/
+symlinked_fastqs/
+reference/*.fasta
+reference/*.fai
+reference/*.dict
+
+# FRASER / count artifacts
+**/counts/
+**/*.h5
+**/*.rds
+**/*.RDS
+**/*.bam
+**/*.bai
+**/*.cram
+**/*.fastq
+**/*.fastq.gz
+**/*.sam
+
+# Slurm / temp
+**/.Rsubread_*
+**/.snakemake/
+**/__pycache__/
+*.pyc
+.DS_Store
+
+# Optional: keep result plots out of git (regenerate from scripts)
+FRASER/results_analysis/*.png
+FRASER/results_analysis/*.pdf
+FRASER/results_analysis/graphs/
+FRASER/results_analysis/old_analysis/

@@ -1,0 +1,8 @@
+"/oak/stanford/scg/prj_gregor/transfer/nygc/Project_SMI_20033_B01_NAN_Lane.2025-04-04/Sample_UDN112958/fastq/UDN112958_ACGCAATC-ATCTGGCT_22MG53LT4_L001_001.R1.fastq.gz"
+"/oak/stanford/scg/prj_gregor/transfer/nygc/Project_SMI_20033_B01_NAN_Lane.2025-04-04/Sample_UDN112958/fastq/UDN112958_ACGCAATC-ATCTGGCT_22MG53LT4_L001_001.R2.fastq.gz"
+"/oak/stanford/scg/prj_gregor/transfer/nygc/Project_SMI_20033_B01_NAN_Lane.2025-04-04/Sample_UDN907359/fastq/UDN907359_GTATCGCA-GCTCAATC_22MG53LT4_L001_001.R1.fastq.gz"
+"/oak/stanford/scg/prj_gregor/transfer/nygc/Project_SMI_20033_B01_NAN_Lane.2025-04-04/Sample_UDN907359/fastq/UDN907359_GTATCGCA-GCTCAATC_22MG53LT4_L001_001.R2.fastq.gz"
+"/oak/stanford/scg/prj_gregor/transfer/nygc/Project_SMI_20033_B01_NAN_Lane.2025-04-04/Sample_UDN629307/fastq/UDN629307_TGCCGTTA-GGAACGAT_22MG53LT4_L001_001.R1.fastq.gz"
+"/oak/stanford/scg/prj_gregor/transfer/nygc/Project_SMI_20033_B01_NAN_Lane.2025-04-04/Sample_UDN629307/fastq/UDN629307_TGCCGTTA-GGAACGAT_22MG53LT4_L001_001.R2.fastq.gz"
+"/oak/stanford/scg/prj_gregor/transfer/nygc/Project_SMI_20033_B01_NAN_Lane.2025-04-04/Sample_UDN664300/fastq/UDN664300_CAACACGT-TACGTGGT_22MG53LT4_L001_001.R1.fastq.gz"
+"/oak/stanford/scg/prj_gregor/transfer/nygc/Project_SMI_20033_B01_NAN_Lane.2025-04-04/Sample_UDN664300/fastq/UDN664300_CAACACGT-TACGTGGT_22MG53LT4_L001_001.R2.fastq.gz"
