@@ -27,6 +27,7 @@ reference/*.dict
 **/__pycache__/
 *.pyc
 .DS_Store
+core.*
 
 # Optional: keep result plots out of git (regenerate from scripts)
 FRASER/results_analysis/*.png

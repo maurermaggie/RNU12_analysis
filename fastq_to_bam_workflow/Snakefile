@@ -1,0 +1,142 @@
+import pandas as pd
+configfile: "config.yaml"
+
+##################################---Step 1: Define all Config Variables---######################################################
+output_directory=config["output_directory"]
+star_index_dir=config["star_index_dir"]
+symlink_directory=config["symlink_directory"]
+
+#########################################---Step 1: Define Wildcard---############################################################
+IDs = [f.name.replace("_R1.fastq.gz", "") for f in Path(symlink_directory).glob("*_R1.fastq.gz")]
+print('Running on samples:{}'.format(IDs))
+
+###########################################---Step 3: Define Rules--##############################################################
+rule all:
+    input:
+        expand(config["output_directory"]+ "/fastq/fastqc/" + "{ID}" + "_R1_fastqc.html", ID=IDs),
+        expand(config["output_directory"]+ "/fastq/fastqc/" + "{ID}" + "_R2_fastqc.html", ID=IDs),
+        expand(config["output_directory"]+ "/fastq/fastqc/" + "{ID}" + "_R1_fastqc.zip", ID=IDs),
+        expand(config["output_directory"]+ "/fastq/fastqc/" + "{ID}" + "_R2_fastqc.zip", ID=IDs),
+        expand(config["output_directory"] + "/star_output_trimmed_hg38_v47/" + "{ID}" + "_Aligned.sortedByCoord.out.bam", ID=IDs),
+        expand(config["output_directory"] + "/star_output_trimmed_hg38_v47/" + "{ID}" + "_Aligned.sortedByCoord.out.bam.bai", ID=IDs)
+
+rule bulk_fastqc:
+    input:
+        fastq_R1 = config["symlink_directory"] + "/" + "{ID}" + "_R1.fastq.gz",
+        fastq_R2 = config["symlink_directory"] + "/" + "{ID}" + "_R2.fastq.gz"    
+    output:
+        html_fastqc_R1 = config["output_directory"]+ "/fastq/fastqc/" + "{ID}" + "_R1_fastqc.html",
+        html_fastqc_R2 = config["output_directory"]+ "/fastq/fastqc/" + "{ID}" + "_R2_fastqc.html",
+        zip_fastqc_R1 = config["output_directory"]+ "/fastq/fastqc/" + "{ID}" + "_R1_fastqc.zip",
+        zip_fastqc_R2 = config["output_directory"]+ "/fastq/fastqc/" + "{ID}" + "_R2_fastqc.zip"
+    params:
+        tracking_file = config["output_directory"] + "/tracking/shuffle_tracking.txt",
+        sampleID = "{ID}"
+    resources:
+        time="24:00:00",
+        mem="248GB",
+        partition="batch",
+        account="smontgom"
+    shell:
+        """
+        if [[ ! -d $(dirname {output.html_fastqc_R1}) ]]; then
+            mkdir -p $(dirname {output.html_fastqc_R1})
+        fi
+
+        fastqc \
+            -t 8 \
+            -o $(dirname {output.html_fastqc_R1}) \
+            {input.fastq_R1} {input.fastq_R2}
+        
+        if [[ ! -f {params.tracking_file} ]]; then
+            touch {params.tracking_file}
+        fi
+        
+        echo "fastqc run on untrimmed fastqs for {params.sampleID}" >> {params.tracking_file}
+        """
+
+rule star_align_trimmed_bulk:
+    input:
+        fastq_R1 = config["symlink_directory"] + "/" + "{ID}" + "_R1.fastq.gz",
+        fastq_R2 = config["symlink_directory"] + "/" + "{ID}" + "_R2.fastq.gz"    
+    output:
+        star_output = config["output_directory"] + "/star_output_trimmed_hg38_v47/" + "{ID}" + "_Aligned.sortedByCoord.out.bam"
+    params:
+        star_index_dir = config["star_index_dir"],
+        star_output_prefix = config["output_directory"] + "/star_output_trimmed_hg38_v47/" + "{ID}" + "_",
+        sampleID = "{ID}",
+        tracking_file = config["output_directory"] + "/tracking/trimmed_star_tracking.txt"
+    conda:
+        'star_env'
+    resources:
+        time="72:00:00",
+        mem="568GB",
+        partition="batch",
+        account="smontgom"
+    shell:
+        """
+        #######################---rule star_align---########################
+        echo "$(date "+[%b %d %H:%M:%S]") Beginning task, creating input directory"
+
+        if [[ ! -d $(dirname {output.star_output}) ]]; then
+            mkdir -p $(dirname {output.star_output})
+        fi
+
+        if [[ ! -d $(dirname {params.tracking_file}) ]]; then
+            mkdir -p $(dirname {params.tracking_file})
+        fi
+
+        echo "$(date "+[%b %d %H:%M:%S]") Running STAR"
+        STAR --genomeDir {params.star_index_dir} \
+            --readFilesIn "{input.fastq_R1}" "{input.fastq_R2}" \
+            --outFileNamePrefix {params.star_output_prefix} \
+            --readFilesCommand zcat \
+            --outSAMattributes All \
+            --outFilterType Normal \
+            --runThreadN 16 \
+            --outSAMtype BAM SortedByCoordinate \
+            --outSAMunmapped Within \
+            --outSAMstrandField intronMotif \
+            --chimSegmentMin 10 \
+            --twopassMode Basic \
+            --genomeSAindexNbases 14 \
+            --outSAMattrRGline ID:rg1 PL:ULTIMA LB:"{params.sampleID}" SM:"{params.sampleID}" \
+            --limitBAMsortRAM 50000000000
+            
+        #singleEndIn -> for single ended Ultima data
+        #readFilesCommand zcat -> Decompress gzipped FASTQ on-the-fly [KEEP - saves disk I/O]
+        #outSAMattributes All -> NH,AS,HI,XS tags for junction quality
+        #outSAMstrandField intronMotif -> GT/AG motifs (critical for FRASER)
+        #outFilterType Normal -> default filtering
+        #SortedByCoordinate -> FRASER needs coordinate order
+        #outSAMunmapped Within -> include unmapped reads in BAM
+        #outSAMstrandField intronMotif -> add XS tag + GT/AG motifs [CRITICAL for FRASER - KEEP]
+        #chimSegmentMin 10 ->  Min anchor for chimeric alignments
+        #twopassMode Basic ->  2-pass for novel junctions [KEEP - essential for splicing outliers]
+        #genomeSAindexNbases 14 -> SA index size (optimized for ~150bp Ultima reads) [KEEP]
+        #outFilterIntronMotifs RemoveNoncanonical -> Keeps: GT-AG, GC-AG, AT-AC (canonical introns), bemoves: Non-canonical motifs (noise for IR calling)
+        #outSAMattrRGline ID:rg1 PL:ULTIMA LB:"{params.sampleID}" SM:"{params.sampleID}" -> Read group tags
+
+        touch {params.tracking_file}
+        echo "fastq for {params.sampleID} aligned to bam using STAR" >> {params.tracking_file}
+        """
+
+rule samtools_index:
+    input:
+        star_output = config["output_directory"] + "/star_output_trimmed_hg38_v47/" + "{ID}" + "_Aligned.sortedByCoord.out.bam"
+    output:
+        star_indexed_bai = config["output_directory"] + "/star_output_trimmed_hg38_v47/" + "{ID}" + "_Aligned.sortedByCoord.out.bam.bai"
+    resources:
+        time="48:00:00",
+        mem="568GB",
+        partition="batch",
+        account="smontgom"
+    shell:
+        """
+        samtools index {input.star_output}
+                
+        #Snakemake will error out if you do not do something with the output file in the rule. 
+        #To get around this, I ls the output file
+        ls {output.star_indexed_bai}
+        echo "indexing done"
+        """
