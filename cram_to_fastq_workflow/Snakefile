@@ -1,0 +1,55 @@
+import pandas as pd
+configfile: "config.yaml"
+
+##################################---Step 1: Define all Config Variables---######################################################
+output_directory=config["output_directory"]
+ref=config["ref"]
+cram_directory=config["cram_directory"]
+
+#########################################---Step 1: Define Wildcard---############################################################
+IDs = [f.name.replace(".cram", "") for f in Path(cram_directory).glob("*.cram")]
+print('Running on samples:{}'.format(IDs))
+
+###########################################---Step 3: Define Rules--##############################################################
+rule all:
+    input:
+        expand(config["output_directory"] + "/" + "{ID}" + "_R1.fastq.gz", ID=IDs),
+        expand(config["output_directory"] + "/" + "{ID}" + "_R2.fastq.gz", ID=IDs)
+
+rule cram_to_fastq:
+    input:
+        input_file = config["cram_directory"] + "/" + "{ID}" + ".cram",
+    output:
+        fastq_R1 = config["output_directory"] + "/" + "{ID}" + "_R1.fastq.gz",
+        fastq_R2 = config["output_directory"] + "/" + "{ID}" + "_R2.fastq.gz"
+    params:
+        ref = config["ref"],
+        tracking_file = config["output_directory"] + "/tracking/cram_to_fastq.txt",
+        sampleID = "{ID}",
+    resources:
+        time="12:00:00",
+        mem="516GB",
+        partition="batch",
+        account="smontgom"
+    shell:
+        """
+        if [[ ! -d $(dirname {params.tracking_file}) ]]; then
+            mkdir -p $(dirname {params.tracking_file})
+        fi
+
+        export REF_CACHE=/tmp/refcache_$UID
+        export REF_PATH=/tmp/refcache_$UID
+        mkdir -p $REF_CACHE
+
+        samtools collate -@ 8 -O -u {input.input_file} | \
+        samtools fastq -@ 8 \
+            --reference {params.ref} \
+            -1 {output.fastq_R1} \
+            -2 {output.fastq_R2}
+        
+        if [[ ! -f {params.tracking_file} ]]; then
+            touch {params.tracking_file}
+        fi
+
+        echo "{params.sampleID} converted from cram to fastq" >> {params.tracking_file}
+        """
